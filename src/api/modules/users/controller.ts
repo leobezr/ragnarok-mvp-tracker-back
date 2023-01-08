@@ -1,56 +1,22 @@
 import { UserModel } from "./model";
-import bcrypt from "bcrypt";
+import { User } from "./user.type";
 
-interface Credential {
-  email: string;
-  password: string;
-}
+export const registerUser = async (userDetails: User, userId: string) => {
+  const { email, name } = userDetails;
+  const userExists = await UserModel.findOne({ auth0Id: userId });
 
-const _hashPassword = async (password: string) => {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
-};
-
-export const create = async (credentials: Credential) => {
-  const { email, password } = credentials;
-
-  const user = await UserModel.findOne({ email });
-
-  if (user) {
-    throw "Email is already in use.";
-  } else {
+  if (!userExists) {
     const userModel = new UserModel({
+      auth0Id: userId,
+      packages: [],
       email,
-      password: await _hashPassword(password),
-      name: "",
-      timerTableId: null,
-      createdAt: Date.now(),
-      clanId: null,
+      name,
     });
 
     try {
       await userModel.save();
-
-      return "User created";
     } catch (err) {
       throw err;
     }
   }
-};
-
-export const login = async (credentials: Credential) => {
-  const { email, password } = credentials;
-  const genericResponse = "Incorrect password or email";
-
-  const user = await UserModel.findOne({ email });
-
-  if (user) {
-    const result = await bcrypt.compare(password, user.password);
-
-    if (result) {
-      return true;
-    }
-  }
-
-  return genericResponse;
 };
