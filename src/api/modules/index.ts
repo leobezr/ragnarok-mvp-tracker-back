@@ -1,3 +1,3 @@
-import { User } from "./users/user";
+import { UserEndpoint } from "./users/user";
 
-export { User };
+export { UserEndpoint };

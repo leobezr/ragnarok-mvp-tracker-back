@@ -1,4 +1,5 @@
 import { Dictionary } from "../types/core";
+import * as status from "./status-response";
 
 export const errorMessage = (
   msg?: string,
@@ -10,8 +11,4 @@ export const errorMessage = (
   };
 };
 
-export const successMessage = (data: Dictionary<any> | string) => ({ data });
-
-export const requiredFieldsMessage = (pendingFields: Dictionary<string>) => {
-  return errorMessage("Required fields pending", pendingFields);
-};
+export { status };

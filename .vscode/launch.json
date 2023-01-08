@@ -2,12 +2,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Nodemon debugger",
-      "request": "launch",
-      "runtimeArgs": ["run", "debug"],
-      "runtimeExecutable": "yarn",
-      "skipFiles": ["<node_internals>/**"],
-      "type": "node"
+      "type": "node",
+      "request": "attach",
+      "protocol": "inspector",
+      "restart": true,
+      "name": "Sucrase Debug",
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }

@@ -1,6 +1,5 @@
 import express, { Express } from "express";
-import { User } from "./modules";
-import { Api } from "./api";
+import { UserEndpoint } from "./modules";
 
 const port = process.env.PORT;
 
@@ -8,11 +7,9 @@ export const apiRegisterEndpoints = (server: Express) => {
   server.use(express.urlencoded());
   server.use(express.json());
 
-  const api = new Api(server);
-
-  User(api);
+  UserEndpoint(server);
 
   server.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
+    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
   });
 };
