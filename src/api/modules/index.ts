@@ -1,3 +1,3 @@
-import { UserEndpoint } from "./users/user";
+import { UserEndpoint } from "./users/api";
 
 export { UserEndpoint };
