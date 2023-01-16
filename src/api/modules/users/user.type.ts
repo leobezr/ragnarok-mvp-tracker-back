@@ -1,10 +1,20 @@
-export interface User {
+export interface User extends UserClientData {
+  password: SaltHash;
+}
+
+export enum UserRole {
+  customer = "customer",
+  editor = "editor",
+  admin = "sysAdmin",
+}
+
+export interface UserClientData {
   token: string;
   email: string;
   name: string;
-  password: SaltHash;
   packages: string[];
   products: HotmartProduct[];
+  role: UserRole;
 }
 
 export interface UserCredentials {
