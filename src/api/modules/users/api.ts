@@ -50,4 +50,25 @@ export const UserEndpoint = (app: Express) => {
       res.status(status.error.notFound).send(err);
     }
   });
+
+  /**
+   * Used as a validation endpoint and fetches
+   * user details from DB, using email to match
+   *
+   * @api {get} /users/me
+   * @apiName Validate
+   * @apiGroup user
+   */
+  app.get(endpoint("me/"), async (req, res) => {
+    try {
+      const token = req.headers.authorization ?? "";
+      const userDetails = await UserController.getDetails(token);
+
+      if (userDetails) {
+        res.status(200).send(userDetails);
+      }
+    } catch (err) {
+      res.status(status.error.notFound).send(err);
+    }
+  });
 };
