@@ -1,7 +1,14 @@
 import { UserModel } from "./model";
-import { User, HotmartWebhook, HotmartProduct, SaltHash } from "./user.type";
 import Crypto from "crypto";
 import jwt from "jsonwebtoken";
+
+import {
+  User,
+  HotmartWebhook,
+  HotmartProduct,
+  SaltHash,
+  UserRole,
+} from "./user.type";
 
 const pepper = process.env.PASSWORD_PEPPER ?? "";
 
@@ -15,12 +22,18 @@ export const passwordHash = (salt: string, password: string | number) => {
 
 export const getUserByToken = async (token: string) => {
   const secretAuthKey = process.env.AUTH_SECRET ?? "";
-  const payload = jwt.verify(token, secretAuthKey) as jwt.JwtPayload;
+  const _token = token.split(" ")[1];
+  const payload = jwt.verify(_token, secretAuthKey) as jwt.JwtPayload;
 
   if (payload && payload?.email) {
-    const userModel = await UserModel.findOne({ email: payload.email });
+    const isExpired = (payload.exp ?? 0) <= Date.now();
 
-    return userModel?.toObject();
+    if (isExpired) {
+      throw "Token expired";
+    }
+
+    const userModel = await UserModel.findOne({ email: payload.email });
+    return deliverSafeUserData(userModel?.toObject());
   }
 };
 
@@ -31,14 +44,23 @@ const alreadyOwnsProduct = (
   return products.some((prod) => prod.id === newProductId);
 };
 
+const deliverSafeUserData = (userModel: any): User => {
+  const { password, __v, ...rawData } = userModel;
+  return rawData as User;
+};
+
 const Token = (id: string, name: string, email: string) => {
   const payload = { id, name, email };
-  const tokenExpirationDate = 1000 * 60 * 60 * 24 * 7;
+  const expiresIn = Date.now() + Math.floor(1000 * 60 * 60 * 24 * 7);
   const secretAuthKey = process.env.AUTH_SECRET ?? "";
 
-  return jwt.sign(payload, secretAuthKey, {
-    expiresIn: tokenExpirationDate,
-  });
+  return jwt.sign(
+    {
+      ...payload,
+      exp: expiresIn,
+    },
+    secretAuthKey
+  );
 };
 
 const Product = (hotmartWebhook: HotmartWebhook): HotmartProduct => {
@@ -69,6 +91,7 @@ const CreateUser = (hotmartWebhook: HotmartWebhook): User => {
     name,
     packages: [],
     products: [Product(hotmartWebhook)],
+    role: UserRole.customer,
   };
 };
 
@@ -120,10 +143,26 @@ export default class UserController {
       if (credentialHashed === hash) {
         const token = Token(userModel.id, userModel.name, userModel.email);
         await userModel.updateOne({ token });
-        return (await userModel.save()).toObject();
+        return deliverSafeUserData((await userModel.save()).toObject());
       }
     } else {
       throw "Invalid email or password";
     }
+  }
+
+  /**
+   * Get user details using token
+   *
+   * @param token String
+   * @returns User
+   */
+  public static async getDetails(token: string) {
+    const user = await getUserByToken(token);
+
+    if (user) {
+      return user;
+    }
+
+    throw "Invalid token";
   }
 }
