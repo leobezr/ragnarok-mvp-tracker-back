@@ -1,4 +1,4 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import { HotmartProduct, User, SaltHash } from "./user.type";
 
 const collectionName = "users";
@@ -16,11 +16,7 @@ const Product = new mongoose.Schema<HotmartProduct>({
 });
 
 const UserSchema = new mongoose.Schema<User>({
-  token: {
-    type: String,
-    required: true,
-    unique: true,
-  },
+  token: String,
   email: {
     type: String,
     required: true,
@@ -28,6 +24,7 @@ const UserSchema = new mongoose.Schema<User>({
   },
   password: Password,
   name: String,
+  role: String,
   packages: [String],
   products: [Product],
 });
